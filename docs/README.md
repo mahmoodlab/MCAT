@@ -2,6 +2,14 @@ Dense Co-Attention Fusion for Survival Prediction in Gigapixel Whole Slide Image
 ===========
 <img src="Fig1_netarch.jpg" width="1500px" align="center" />
 
+## Updates:
+* 06/17/2021: Uploaded predicted risk scores on the validation folds for each models, and the evaluation script to compute the c-Index and Integrated AUC (I-AUC) validation metrics, found using the [following Jupyter Notebook](https://github.com/iccv2021anon/10972/blob/master/Evaluation.ipynb). Model checkpoints for MCAT are uploaded in the results directory.
+    * Similar to evaluation using c-Index, MCAT achieves an improvement of 5.98% and 13.30% compared to Attention MIL and DeepAttnMISL respectively on overall I-AUC (6.35% and 12.4% on overall c-Index), and an improvement of 3.53% - 8.02% on all multimodal methods on overall I-AUC (3.0% − 6.87% on overall c-Index).
+* 06/17/2021: Uploaded notebook detailing the MCAT network architecture, with sample input in the following [following Jupyter Notebook](https://github.com/iccv2021anon/10972/blob/master/Model%20Computation%20%2B%20Complexity%20Overview.ipynb).
+    * In the forward pass, we print the shape of the tensors at each stage of MCAT, to better elucidate how Genomic-Guided Co-Attention and MIL Transformers are implemented. In our current implementation, the GCA layer in MCAT is asymmetrical in that only genomic embeddings are used as queries. The aggregation performed by GCA (using genomic embeddings as queries for histology phenotypes) forms different WSI-level embeddings and attention maps for each genomic embedding, where each WSI-level embedding / attention map reflects learned interactions between the instance-level histology features as the genomic embedding-of-interest.
+
+
+
 ## Pre-requisites:
 * Linux (Tested on Ubuntu 18.04) 
 * NVIDIA GPU (Tested on Nvidia GeForce RTX 2080 Ti x 16) with CUDA 11.0 and cuDNN 7.5
