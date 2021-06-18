@@ -3,6 +3,7 @@ Dense Co-Attention Fusion for Survival Prediction in Gigapixel Whole Slide Image
 <img src="Fig1_netarch.jpg" width="1500px" align="center" />
 
 ## Updates:
+* 06/18/2021: Updated data preprocessing section.
 * 06/17/2021: Uploaded predicted risk scores on the validation folds for each models, and the evaluation script to compute the c-Index and Integrated AUC (I-AUC) validation metrics, found using the [following Jupyter Notebook](https://github.com/iccv2021anon/10972/blob/master/Evaluation.ipynb). Model checkpoints for MCAT are uploaded in the results directory.
     * Similar to evaluation using c-Index, MCAT achieves an improvement of 5.98% and 13.30% compared to Attention MIL and DeepAttnMISL respectively on overall I-AUC (6.35% and 12.4% on overall c-Index), and an improvement of 3.53% - 8.02% on all multimodal methods on overall I-AUC (3.0% − 6.87% on overall c-Index).
 * 06/17/2021: Uploaded notebook detailing the MCAT network architecture, with sample input in the following [following Jupyter Notebook](https://github.com/iccv2021anon/10972/blob/master/Model%20Computation%20%2B%20Complexity%20Overview.ipynb).
@@ -50,7 +51,8 @@ DATA_ROOT_DIR is the base directory of all datasets / cancer type(e.g. the direc
 
 
 #### 3. Molecular Features and Genomic Signatures
-Processed molecular profile features containing mutation status, copy number variation, and RNA-Seq abundance can be downloaded from the [cBioPortal](https://www.cbioportal.org/).
+Processed molecular profile features containing mutation status, copy number variation, and RNA-Seq abundance can be downloaded from the [cBioPortal](https://www.cbioportal.org/), which we include as CSV files in the [following directory](https://github.com/iccv2021anon/10972/tree/master/datasets_csv_sig). For ordering gene features into gene embeddings, we used the following categorization of gene families (categorized via common features such as homology or biochemical activity) from [MSigDB](https://www.gsea-msigdb.org/gsea/msigdb/gene_families.jsp?ex=1). Gene sets for homeodomain proteins and translocated cancer genes were not used due to overlap with transcription factors and oncogenes respectively. The curation of "genomic signatures" can be modified to curate genomic embedding that reflect unique biological functions, which we hope to explore in future work.
+
 
 <img src="Fig2_GCA.jpg" width="1500px" align="center" />
 
