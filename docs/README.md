@@ -3,7 +3,7 @@ Dense Co-Attention Fusion for Survival Prediction in Gigapixel Whole Slide Image
 <img src="Fig1_netarch.jpg" width="1500px" align="center" />
 
 ## Updates:
-* 06/18/2021: Updated data preprocessing section.
+* 06/18/2021: Updated [data preprocessing section](https://github.com/iccv2021anon/10972/blob/master/docs/README.md#3-molecular-features-and-genomic-signatures).
 * 06/17/2021: Uploaded predicted risk scores on the validation folds for each models, and the evaluation script to compute the c-Index and Integrated AUC (I-AUC) validation metrics, found using the [following Jupyter Notebook](https://github.com/iccv2021anon/10972/blob/master/Evaluation.ipynb). Model checkpoints for MCAT are uploaded in the results directory.
     * Similar to evaluation using c-Index, MCAT achieves an improvement of 5.98% and 13.30% compared to Attention MIL and DeepAttnMISL respectively on overall I-AUC (6.35% and 12.4% on overall c-Index), and an improvement of 3.53% - 8.02% on all multimodal methods on overall I-AUC (3.0% − 6.87% on overall c-Index).
 * 06/17/2021: Uploaded notebook detailing the MCAT network architecture, with sample input in the following [following Jupyter Notebook](https://github.com/iccv2021anon/10972/blob/master/Model%20Computation%20%2B%20Complexity%20Overview.ipynb).
