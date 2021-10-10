@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model_utils import *
+from models.model_utils import *
 
 
 
@@ -16,12 +16,12 @@ from model_utils import *
 ### Deep Sets Implementation ###
 ################################
 class MIL_Sum_FC_surv(nn.Module):
-    def __init__(self, input_dim=None, fusion=None, size_arg = "small", dropout=0.25, n_classes=4):
+    def __init__(self, omic_input_dim=None, fusion=None, size_arg = "small", dropout=0.25, n_classes=4):
         r"""
         Deep Sets Implementation.
 
         Args:
-            input_dim (int): Dimension size of genomic features.
+            omic_input_dim (int): Dimension size of genomic features.
             fusion (str): Fusion method (Choices: concat, bilinear, or None)
             size_arg (str): Size of NN architecture (Choices: small or large)
             dropout (float): Dropout rate
@@ -38,9 +38,9 @@ class MIL_Sum_FC_surv(nn.Module):
         self.rho = nn.Sequential(*[nn.Linear(size[1], size[2]), nn.ReLU(), nn.Dropout(dropout)])
 
         ### Constructing Genomic SNN
-        if self.fusion is not None:
+        if self.fusion != None:
             hidden = [256, 256]
-            fc_omic = [SNN_Block(dim1=input_dim, dim2=hidden[0])]
+            fc_omic = [SNN_Block(dim1=omic_input_dim, dim2=hidden[0])]
             for i, _ in enumerate(hidden[1:]):
                 fc_omic.append(SNN_Block(dim1=hidden[i], dim2=hidden[i+1], dropout=0.25))
             self.fc_omic = nn.Sequential(*fc_omic)
@@ -98,12 +98,12 @@ class MIL_Sum_FC_surv(nn.Module):
 # Attention MIL Implementation #
 ################################
 class MIL_Attention_FC_surv(nn.Module):
-    def __init__(self, input_dim=None, fusion=None, size_arg = "small", dropout=0.25, n_classes=4):
+    def __init__(self, omic_input_dim=None, fusion=None, size_arg = "small", dropout=0.25, n_classes=4):
         r"""
         Attention MIL Implementation
 
         Args:
-            input_dim (int): Dimension size of genomic features.
+            omic_input_dim (int): Dimension size of genomic features.
             fusion (str): Fusion method (Choices: concat, bilinear, or None)
             size_arg (str): Size of NN architecture (Choices: small or large)
             dropout (float): Dropout rate
@@ -125,7 +125,7 @@ class MIL_Attention_FC_surv(nn.Module):
         ### Constructing Genomic SNN
         if self.fusion is not None:
             hidden = [256, 256]
-            fc_omic = [SNN_Block(dim1=input_dim, dim2=hidden[0])]
+            fc_omic = [SNN_Block(dim1=omic_input_dim, dim2=hidden[0])]
             for i, _ in enumerate(hidden[1:]):
                 fc_omic.append(SNN_Block(dim1=hidden[i], dim2=hidden[i+1], dropout=0.25))
             self.fc_omic = nn.Sequential(*fc_omic)
@@ -187,12 +187,12 @@ class MIL_Attention_FC_surv(nn.Module):
 # Deep Attention MISL Implementation #
 ######################################
 class MIL_Cluster_FC_surv(nn.Module):
-    def __init__(self, input_dim=None, fusion=None, num_clusters=10, size_arg = "small", dropout=0.25, n_classes=4):
+    def __init__(self, omic_input_dim=None, fusion=None, num_clusters=10, size_arg = "small", dropout=0.25, n_classes=4):
         r"""
         Attention MIL Implementation
 
         Args:
-            input_dim (int): Dimension size of genomic features.
+            omic_input_dim (int): Dimension size of genomic features.
             fusion (str): Fusion method (Choices: concat, bilinear, or None)
             size_arg (str): Size of NN architecture (Choices: small or large)
             dropout (float): Dropout rate
@@ -224,7 +224,7 @@ class MIL_Cluster_FC_surv(nn.Module):
         ### Genomic SNN Construction + Multimodal Fusion
         if fusion is not None:
             hidden = self.size_dict_omic['small']
-            fc_omic = [SNN_Block(dim1=input_dim, dim2=hidden[0])]
+            fc_omic = [SNN_Block(dim1=omic_input_dim, dim2=hidden[0])]
             for i, _ in enumerate(hidden[1:]):
                 fc_omic.append(SNN_Block(dim1=hidden[i], dim2=hidden[i+1], dropout=0.25))
             self.fc_omic = nn.Sequential(*fc_omic)

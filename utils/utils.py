@@ -50,21 +50,19 @@ def collate_features(batch):
 def collate_MIL_survival(batch):
     img = torch.cat([item[0] for item in batch], dim = 0)
     omic = torch.cat([item[1] for item in batch], dim = 0).type(torch.FloatTensor)
-    meta = torch.cat([item[2] for item in batch], dim = 0).type(torch.FloatTensor)
-    label = torch.LongTensor([item[3] for item in batch])
-    event_time = np.array([item[4] for item in batch])
-    c = torch.FloatTensor([item[5] for item in batch])
-    return [img, omic, meta, label, event_time, c]
+    label = torch.LongTensor([item[2] for item in batch])
+    event_time = np.array([item[3] for item in batch])
+    c = torch.FloatTensor([item[4] for item in batch])
+    return [img, omic, label, event_time, c]
 
 def collate_MIL_survival_cluster(batch):
     img = torch.cat([item[0] for item in batch], dim = 0)
     cluster_ids = torch.cat([item[1] for item in batch], dim = 0).type(torch.LongTensor)
     omic = torch.cat([item[2] for item in batch], dim = 0).type(torch.FloatTensor)
-    meta = torch.cat([item[3] for item in batch], dim = 0).type(torch.FloatTensor)
-    label = torch.LongTensor([item[4] for item in batch])
-    event_time = np.array([item[5] for item in batch])
-    c = torch.FloatTensor([item[6] for item in batch])
-    return [img, cluster_ids, omic, meta, label, event_time, c]
+    label = torch.LongTensor([item[3] for item in batch])
+    event_time = np.array([item[4] for item in batch])
+    c = torch.FloatTensor([item[5] for item in batch])
+    return [img, cluster_ids, omic, label, event_time, c]
 
 def collate_MIL_survival_sig(batch):
     img = torch.cat([item[0] for item in batch], dim = 0)
@@ -75,11 +73,10 @@ def collate_MIL_survival_sig(batch):
     omic5 = torch.cat([item[5] for item in batch], dim = 0).type(torch.FloatTensor)
     omic6 = torch.cat([item[6] for item in batch], dim = 0).type(torch.FloatTensor)
 
-    meta = torch.cat([item[7] for item in batch], dim = 0).type(torch.FloatTensor)
-    label = torch.LongTensor([item[8] for item in batch])
-    event_time = np.array([item[9] for item in batch])
-    c = torch.FloatTensor([item[10] for item in batch])
-    return [img, omic1, omic2, omic3, omic4, omic5, omic6, meta, label, event_time, c]
+    label = torch.LongTensor([item[7] for item in batch])
+    event_time = np.array([item[8] for item in batch])
+    c = torch.FloatTensor([item[9] for item in batch])
+    return [img, omic1, omic2, omic3, omic4, omic5, omic6, label, event_time, c]
 
 def get_simple_loader(dataset, batch_size=1):
     kwargs = {'num_workers': 4} if device.type == "cuda" else {}
@@ -370,3 +367,60 @@ def l1_reg_modules(model, reg_type=None):
     l1_reg += l1_reg_all(model.mm)
 
     return l1_reg
+
+def get_custom_exp_code(args):
+    exp_code = '_'.join(args.split_dir.split('_')[:2])
+    dataset_path = 'dataset_csv'
+    param_code = ''
+
+    ### Model Type
+    if args.model_type == 'max_net':
+      param_code += 'SNN'
+    if args.model_type == 'amil':
+      param_code += 'AMIL'
+    elif args.model_type == 'deepset':
+      param_code += 'DS'
+    elif args.model_type == 'mi_fcn':
+      param_code += 'MIFCN'
+    elif args.model_type == 'mcat':
+      param_code += 'MCAT'
+    else:
+      raise NotImplementedError
+
+    ### Loss Function
+    param_code += '_%s' % args.bag_loss
+    param_code += '_a%s' % str(args.alpha_surv)
+
+    ### Learning Rate
+    if args.lr != 2e-4:
+      param_code += '_lr%s' % format(args.lr, '.0e')
+
+    ### L1-Regularization
+    if args.reg_type != 'None':
+      param_code += '_reg%s' % format(args.lambda_reg, '.0e')
+
+    param_code += '_%s' % args.which_splits.split("_")[0]
+
+    ### Batch Size
+    if args.batch_size != 1:
+      param_code += '_b%s' % str(args.batch_size)
+
+    ### Gradient Accumulation
+    if args.gc != 1:
+      param_code += '_gc%s' % str(args.gc)
+
+    ### Applying Which Features
+    if args.apply_sigfeats:
+      param_code += '_sig'
+      dataset_path += '_sig'
+
+
+    ### Fusion Operation
+    if args.fusion != "None":
+      param_code += '_' + args.fusion
+
+    args.exp_code = exp_code + "_" + param_code
+    args.param_code = param_code
+    args.dataset_path = dataset_path
+
+    return args

@@ -15,6 +15,9 @@ from models.model_set_mil import *
 from models.model_coattn import MCAT_Surv
 from utils.utils import *
 
+from utils.coattn_train_utils import *
+#from utils.cluster_train_utils import *
+
 
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
@@ -141,19 +144,19 @@ def train(datasets: tuple, cur: int, args: Namespace):
     
     print('\nInit Model...', end=' ')
     model_dict = {"dropout": args.drop_out, 'n_classes': args.n_classes}
-
+    args.fusion = None if args.fusion == 'None' else args.fusion
 
     if args.model_type =='max_net':
-        model_dict = {'input_dim': args.omic_input_dim, 'model_size_omic': args.model_size_omic, 'n_classes': args.n_classes}
+        model_dict = {'omic_input_dim': args.omic_input_dim, 'model_size_omic': args.model_size_omic, 'n_classes': args.n_classes}
         model = MaxNet(**model_dict)
     elif args.model_type == 'deepset':
-        model_dict = {'input_dim': args.omic_input_dim, 'fusion': args.fusion, 'n_classes': args.n_classes}
+        model_dict = {'omic_input_dim': args.omic_input_dim, 'fusion': args.fusion, 'n_classes': args.n_classes}
         model = MIL_Sum_FC_surv(**model_dict)
     elif args.model_type =='amil':
-        model_dict = {'input_dim': args.omic_input_dim, 'fusion': args.fusion, 'n_classes': args.n_classes}
+        model_dict = {'omic_input_dim': args.omic_input_dim, 'fusion': args.fusion, 'n_classes': args.n_classes}
         model = MIL_Attention_FC_surv(**model_dict)
     elif args.model_type == 'mi_fcn':
-        model_dict = {'input_dim': args.omic_input_dim, 'fusion': args.fusion, 'num_clusters': 10, 'n_classes': args.n_classes}
+        model_dict = {'omic_input_dim': args.omic_input_dim, 'fusion': args.fusion, 'num_clusters': 10, 'n_classes': args.n_classes}
         model = MIL_Cluster_FC_surv(**model_dict)
     elif args.model_type == 'mcat':
         model_dict = {'fusion': args.fusion, 'omic_sizes': args.omic_sizes, 'n_classes': args.n_classes}
@@ -174,7 +177,7 @@ def train(datasets: tuple, cur: int, args: Namespace):
     
     print('\nInit Loaders...', end=' ')
     train_loader = get_split_loader(train_split, training=True, testing = args.testing, 
-                                    weighted = args.weighted_sample, mode=args.mode, batch_size=args.batch_size)
+        weighted = args.weighted_sample, mode=args.mode, batch_size=args.batch_size)
     val_loader = get_split_loader(val_split,  testing = args.testing, mode=args.mode, batch_size=args.batch_size)
     print('Done!')
 
@@ -191,8 +194,8 @@ def train(datasets: tuple, cur: int, args: Namespace):
     for epoch in range(args.max_epochs):
         if args.task_type == 'survival':
             if args.mode == 'coattn':
-                train_loop_survival_coattn(epoch, model, train_loader, optimizer, args.n_classes, writer, loss_fn, reg_fn, args.lambda_reg, args.gc, VAE)
-                stop = validate_survival_coattn(cur, epoch, model, val_loader, args.n_classes, early_stopping, monitor_cindex, writer, loss_fn, reg_fn, args.lambda_reg, args.results_dir, VAE)
+                train_loop_survival_coattn(epoch, model, train_loader, optimizer, args.n_classes, writer, loss_fn, reg_fn, args.lambda_reg, args.gc)
+                stop = validate_survival_coattn(cur, epoch, model, val_loader, args.n_classes, early_stopping, monitor_cindex, writer, loss_fn, reg_fn, args.lambda_reg, args.results_dir)
             else:
                 train_loop_survival(epoch, model, train_loader, optimizer, args.n_classes, writer, loss_fn, reg_fn, args.lambda_reg, args.gc)
                 stop = validate_survival(cur, epoch, model, val_loader, args.n_classes, early_stopping, monitor_cindex, writer, loss_fn, reg_fn, args.lambda_reg, args.results_dir)

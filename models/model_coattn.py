@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from model_utils import *
+from models.model_utils import *
 
 
 
@@ -16,26 +16,14 @@ from model_utils import *
 ### MCAT Implementation ###
 ###########################
 class MCAT_Surv(nn.Module):
-    def __init__(self, fusion='concat', omic_sizes=[100, 200, 300, 400, 500, 600], model_size_wsi: str='small', 
-        model_size_omic: str='small', n_classes=4, dropout=0.25):
-        r"""
-        Multimodal Co-Attention Transformer (MCAT) Implementation.
-
-        Args:
-            fusion (str): Late fusion method (Choices: concat, bilinear, or None)
-            omic_sizes (List): List of sizes of genomic embeddings
-            model_size_wsi (str): Size of WSI encoder (Choices: small or large)
-            model_size_omic (str): Size of Genomic encoder (Choices: small or large)
-            dropout (float): Dropout rate
-            n_classes (int): Output shape of NN
-        """
+    def __init__(self, fusion='concat', omic_sizes=[100, 200, 300, 400, 500, 600], n_classes=4,
+                 model_size_wsi: str='small', model_size_omic: str='small', dropout=0.25):
         super(MCAT_Surv, self).__init__()
         self.fusion = fusion
         self.omic_sizes = omic_sizes
         self.n_classes = n_classes
         self.size_dict_WSI = {"small": [1024, 256, 256], "big": [1024, 512, 384]}
         self.size_dict_omic = {'small': [256, 256], 'big': [1024, 1024, 1024, 256]}
-        #self.criterion = SupConLoss(temperature=0.7)
         
         ### FC Layer over WSI bag
         size = self.size_dict_WSI[model_size_wsi]
@@ -79,7 +67,6 @@ class MCAT_Surv(nn.Module):
         ### Classifier
         self.classifier = nn.Linear(size[2], n_classes)
 
-
     def forward(self, **kwargs):
         x_path = kwargs['x_path']
         x_omic = [kwargs['x_omic%d' % i] for i in range(1,7)]
@@ -117,37 +104,16 @@ class MCAT_Surv(nn.Module):
         S = torch.cumprod(1 - hazards, dim=1)
         
         attention_scores = {'coattn': A_coattn, 'path': A_path, 'omic': A_omic}
-        return hazards, S, Y_hat, attention_scores, None# F.normalize(h_path_coattn, dim=2), F.normalize(h_omic_bag, dim=2)
-
-
-    def relocate(self):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        if torch.cuda.device_count() >= 1:
-            device_ids = list(range(torch.cuda.device_count()))
-            #device_ids = [0,2]
-            self.wsi_net = nn.DataParallel(self.wsi_net, device_ids=device_ids).to('cuda:0')
-            for i, _ in enumerate(self.sig_networks):
-                self.sig_networks[i] =  nn.DataParallel(self.sig_networks[i], device_ids=device_ids).to('cuda:0')
-            #self.coattn = nn.DataParallel(self.coattn, device_ids=device_ids).to('cuda:0')
-
-            self.path_transformer =  nn.DataParallel(self.path_transformer, device_ids=device_ids).to('cuda:0')
-            self.path_attention_head =  nn.DataParallel(self.path_attention_head, device_ids=device_ids).to('cuda:0')
-            self.path_rho =  nn.DataParallel(self.path_rho, device_ids=device_ids).to('cuda:0')
-            self.omic_transformer =  nn.DataParallel(self.omic_transformer, device_ids=device_ids).to('cuda:0')
-            self.omic_attention_head =  nn.DataParallel(self.omic_attention_head, device_ids=device_ids).to('cuda:0')
-            self.omic_rho =  nn.DataParallel(self.omic_rho, device_ids=device_ids).to('cuda:0')
-
-            self.mm = nn.DataParallel(self.mm, device_ids=device_ids).to('cuda:0')
-            self.classifier = nn.DataParallel(self.classifier, device_ids=device_ids).to('cuda:0')
-
-        self.coattn = self.coattn.to(device)
+        
+        return hazards, S, Y_hat, attention_scores
 
 
     def captum(self, x_path, x_omic1, x_omic2, x_omic3, x_omic4, x_omic5, x_omic6):
         #x_path = torch.randn((10, 500, 1024))
         #x_omic1, x_omic2, x_omic3, x_omic4, x_omic5, x_omic6 = [torch.randn(10, size) for size in omic_sizes]
         x_omic = [x_omic1, x_omic2, x_omic3, x_omic4, x_omic5, x_omic6]
-        h_path_bag = self.wsi_net(x_path).permute(1,0,2)#.unsqueeze(1) ### path embeddings are fed through a FC layer
+        h_path_bag = self.wsi_net(x_path)#.unsqueeze(1) ### path embeddings are fed through a FC layer
+        h_path_bag = torch.reshape(h_path_bag, (500, 10, 256))
         h_omic = [self.sig_networks[idx].forward(sig_feat) for idx, sig_feat in enumerate(x_omic)] ### each omic signature goes through it's own FC layer
         h_omic_bag = torch.stack(h_omic) ### omic embeddings are stacked (to be used in co-attention)
 
@@ -155,18 +121,18 @@ class MCAT_Surv(nn.Module):
         h_path_coattn, A_coattn = self.coattn(h_omic_bag, h_path_bag, h_path_bag)
 
         ### Path
-        h_path_trans = self.path_transformer(h_path_coattn).permute(1,0,2)
+        h_path_trans = self.path_transformer(h_path_coattn)
+        h_path_trans = torch.reshape(h_path_trans, (10, 6, 256))
         A_path, h_path = self.path_attention_head(h_path_trans)
         A_path = F.softmax(A_path.squeeze(dim=2), dim=1).unsqueeze(dim=1)
         h_path = torch.bmm(A_path, h_path).squeeze(dim=1)
-        h_path = self.path_rho(h_path)
 
         ### Omic
-        h_omic_trans = self.omic_transformer(h_omic_bag).permute(1,0,2)
+        h_omic_trans = self.omic_transformer(h_omic_bag)
+        h_omic_trans = torch.reshape(h_omic_trans, (10, 6, 256))
         A_omic, h_omic = self.omic_attention_head(h_omic_trans)
         A_omic = F.softmax(A_omic.squeeze(dim=2), dim=1).unsqueeze(dim=1)
         h_omic = torch.bmm(A_omic, h_omic).squeeze(dim=1)
-        h_omic = self.omic_rho(h_omic)
 
         if self.fusion == 'bilinear':
             h = self.mm(h_path.unsqueeze(dim=0), h_omic.unsqueeze(dim=0)).squeeze()
@@ -179,6 +145,7 @@ class MCAT_Surv(nn.Module):
 
         risk = -torch.sum(S, dim=1)
         return risk
+
 
 
 ###

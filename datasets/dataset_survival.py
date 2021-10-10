@@ -40,30 +40,32 @@ class Generic_WSI_Survival_Dataset(Dataset):
         self.train_ids, self.val_ids, self.test_ids  = (None, None, None)
         self.data_dir = None
 
-        slide_data = pd.read_csv(csv_path, index_col=0, low_memory=False)
-        if 'case_id' not in slide_data:
-            slide_data.index = slide_data.index.str[:12]
-            slide_data['case_id'] = slide_data.index
-            slide_data = slide_data.reset_index(drop=True)
-
-        if "IDC" in slide_data['oncotree_code']: # must be BRCA (and if so, use only IDCs)
-            slide_data = slide_data[slide_data['oncotree_code'] == 'IDC']
-
-        if not label_col:
-            label_col = 'survival'
-        else:
-            assert label_col in slide_data.columns
-        self.label_col = label_col
-        ###shuffle data
         if shuffle:
             np.random.seed(seed)
             np.random.shuffle(slide_data)
 
-        #self.slide_data = slide_data
+
+        slide_data = pd.read_csv(csv_path, low_memory=False)
+        #slide_data = slide_data.drop(['Unnamed: 0'], axis=1)
+        if 'case_id' not in slide_data:
+            slide_data.index = slide_data.index.str[:12]
+            slide_data['case_id'] = slide_data.index
+            slide_data = slide_data.reset_index(drop=True)
+        import pdb
+        #pdb.set_trace()
+
+        if not label_col:
+            label_col = 'survival_months'
+        else:
+            assert label_col in slide_data.columns
+        self.label_col = label_col
+
+        if "IDC" in slide_data['oncotree_code']: # must be BRCA (and if so, use only IDCs)
+            slide_data = slide_data[slide_data['oncotree_code'] == 'IDC']
+
         patients_df = slide_data.drop_duplicates(['case_id']).copy()
         uncensored_df = patients_df[patients_df['censorship'] < 1]
 
-        #disc_labels, bins = pd.cut(uncensored_df[label_col], bins=n_bins, right=False, include_lowest=True, labels=np.arange(n_bins), retbins=True)
         disc_labels, q_bins = pd.qcut(uncensored_df[label_col], q=n_bins, retbins=True, labels=False)
         q_bins[-1] = slide_data[label_col].max() + eps
         q_bins[0] = slide_data[label_col].min() - eps
@@ -111,7 +113,7 @@ class Generic_WSI_Survival_Dataset(Dataset):
         new_cols = list(slide_data.columns[-2:]) + list(slide_data.columns[:-2])
         slide_data = slide_data[new_cols]
         self.slide_data = slide_data
-        self.metadata = slide_data.columns[:11]
+        self.metadata = slide_data.columns[:12]
         self.mode = mode
         self.cls_ids_prep()
 
@@ -121,7 +123,7 @@ class Generic_WSI_Survival_Dataset(Dataset):
         ### Signatures
         self.apply_sig = apply_sig
         if self.apply_sig:
-            self.signatures = pd.read_csv('./dataset_csv/signatures.csv')
+            self.signatures = pd.read_csv('./dataset_csv_sig/signatures.csv')
         else:
             self.signatures = None
 
@@ -210,6 +212,15 @@ class Generic_WSI_Survival_Dataset(Dataset):
         return train_split, val_split#, test_split
 
 
+    def get_list(self, ids):
+        return self.slide_data['slide_id'][ids]
+
+    def getlabel(self, ids):
+        return self.slide_data['label'][ids]
+
+    def __getitem__(self, idx):
+        return None
+
     def __getitem__(self, idx):
         return None
 
@@ -230,7 +241,6 @@ class Generic_MIL_Survival_Dataset(Generic_WSI_Survival_Dataset):
         event_time = self.slide_data[self.label_col][idx]
         c = self.slide_data['censorship'][idx]
         slide_ids = self.patient_dict[case_id]
-        meta = torch.tensor(self.meta[idx])
 
         if type(self.data_dir) == dict:
             source = self.slide_data['oncotree_code'][idx]
@@ -247,7 +257,7 @@ class Generic_MIL_Survival_Dataset(Generic_WSI_Survival_Dataset):
                         wsi_bag = torch.load(wsi_path)
                         path_features.append(wsi_bag)
                     path_features = torch.cat(path_features, dim=0)
-                    return (path_features, torch.zeros((1,1)), meta, label, event_time, c)
+                    return (path_features, torch.zeros((1,1)), label, event_time, c)
 
                 elif self.mode == 'cluster':
                     path_features = []
@@ -260,11 +270,11 @@ class Generic_MIL_Survival_Dataset(Generic_WSI_Survival_Dataset):
                     path_features = torch.cat(path_features, dim=0)
                     cluster_ids = torch.Tensor(cluster_ids)
                     genomic_features = torch.tensor(self.genomic_features.iloc[idx])
-                    return (path_features, cluster_ids, genomic_features, meta, label, event_time, c)
+                    return (path_features, cluster_ids, genomic_features, label, event_time, c)
 
                 elif self.mode == 'omic':
                     genomic_features = torch.tensor(self.genomic_features.iloc[idx])
-                    return (torch.zeros((1,1)), genomic_features, meta, label, event_time, c)
+                    return (torch.zeros((1,1)), genomic_features, label, event_time, c)
 
                 elif self.mode == 'pathomic':
                     path_features = []
@@ -274,7 +284,7 @@ class Generic_MIL_Survival_Dataset(Generic_WSI_Survival_Dataset):
                         path_features.append(wsi_bag)
                     path_features = torch.cat(path_features, dim=0)
                     genomic_features = torch.tensor(self.genomic_features.iloc[idx])
-                    return (path_features, genomic_features, meta, label, event_time, c)
+                    return (path_features, genomic_features, label, event_time, c)
 
                 elif self.mode == 'coattn':
                     path_features = []
@@ -289,7 +299,7 @@ class Generic_MIL_Survival_Dataset(Generic_WSI_Survival_Dataset):
                     omic4 = torch.tensor(self.genomic_features[self.omic_names[3]].iloc[idx])
                     omic5 = torch.tensor(self.genomic_features[self.omic_names[4]].iloc[idx])
                     omic6 = torch.tensor(self.genomic_features[self.omic_names[5]].iloc[idx])
-                    return (path_features, omic1, omic2, omic3, omic4, omic5, omic6, meta, label, event_time, c)
+                    return (path_features, omic1, omic2, omic3, omic4, omic5, omic6, label, event_time, c)
 
                 else:
                     raise NotImplementedError('Mode [%s] not implemented.' % self.mode)
@@ -314,11 +324,7 @@ class Generic_Split(Generic_MIL_Survival_Dataset):
 
         ### --> Initializing genomic features in Generic Split
         self.genomic_features = self.slide_data.drop(self.metadata, axis=1)
-        self.meta = self.slide_data[['is_female', 'age']]
         self.signatures = signatures
-
-        for col in self.meta.columns:
-            self.meta[col] = self.meta[col].fillna(self.meta[col].median()) #
 
         with open(os.path.join(data_dir, 'fast_cluster_ids.pkl'), 'rb') as handle:
             self.fname2ids = pickle.load(handle)
@@ -343,8 +349,7 @@ class Generic_Split(Generic_MIL_Survival_Dataset):
     ### --> Getting StandardScaler of self.genomic_features
     def get_scaler(self):
         scaler_omic = StandardScaler().fit(self.genomic_features)
-        scaler_meta = StandardScaler().fit(self.meta)
-        return (scaler_omic, scaler_meta)
+        return (scaler_omic,)
     ### <--
 
     ### --> Applying StandardScaler to self.genomic_features
@@ -352,5 +357,4 @@ class Generic_Split(Generic_MIL_Survival_Dataset):
         transformed = pd.DataFrame(scalers[0].transform(self.genomic_features))
         transformed.columns = self.genomic_features.columns
         self.genomic_features = transformed
-        self.meta = scalers[1].transform(self.meta)
     ### <--
