@@ -15,7 +15,7 @@ from models.model_utils import *
 ##########################
 #### Genomic FC Model ####
 ##########################
-class MaxNet(nn.Module):
+class SNN(nn.Module):
     def __init__(self, input_dim: int, model_size_omic: str='small', n_classes: int=4):
         super(MaxNet, self).__init__()
         self.n_classes = n_classes

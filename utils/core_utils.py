@@ -10,14 +10,13 @@ from sksurv.metrics import concordance_index_censored
 import torch
 
 from datasets.dataset_generic import save_splits
-from models.model_genomic import MaxNet
-from models.model_set_mil import *
+from models.model_genomic import SNN
+from models.model_set_mil import MIL_Sum_FC_surv, MIL_Attention_FC_surv, MIL_Cluster_FC_surv
 from models.model_coattn import MCAT_Surv
 from utils.utils import *
 
 from utils.coattn_train_utils import *
-#from utils.cluster_train_utils import *
-
+from utils.cluster_train_utils import *
 
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
@@ -146,9 +145,9 @@ def train(datasets: tuple, cur: int, args: Namespace):
     model_dict = {"dropout": args.drop_out, 'n_classes': args.n_classes}
     args.fusion = None if args.fusion == 'None' else args.fusion
 
-    if args.model_type =='max_net':
+    if args.model_type =='snn':
         model_dict = {'omic_input_dim': args.omic_input_dim, 'model_size_omic': args.model_size_omic, 'n_classes': args.n_classes}
-        model = MaxNet(**model_dict)
+        model = SNN(**model_dict)
     elif args.model_type == 'deepset':
         model_dict = {'omic_input_dim': args.omic_input_dim, 'fusion': args.fusion, 'n_classes': args.n_classes}
         model = MIL_Sum_FC_surv(**model_dict)
