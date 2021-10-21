@@ -59,8 +59,6 @@ def main(args):
 		### Specify the input dimension size if using genomic features.
 		if 'omic' in args.mode or args.mode == 'cluster' or args.mode == 'graph' or args.mode == 'pyramid':
 			args.omic_input_dim = train_dataset.genomic_features.shape[1]
-			if args.pca_comp > 0:
-				args.omic_input_dim = args.pca_comp
 			print("Genomic Dimension", args.omic_input_dim)
 		elif 'coattn' in args.mode:
 			args.omic_sizes = train_dataset.omic_sizes
