@@ -1,11 +1,18 @@
-Multimodal Co-Attention Transformer for Survival Prediction in Gigapixel Whole Slide Images
+MCAT
 ===========
 
-#### ICCV 2021
+### Multimodal Co-Attention Transformer for Survival Prediction in Gigapixel Whole Slide Images
+
+*ICCV 2021*
+
+[Read Link](https://openaccess.thecvf.com/content/ICCV2021/papers/Chen_Multimodal_Co-Attention_Transformer_for_Survival_Prediction_in_Gigapixel_Whole_Slide_ICCV_2021_paper.pdf)
 
 © [Mahmood Lab](http://www.mahmoodlab.org) - This code is made available under the GPLv3 License and is available for non-commercial academic purposes. 
 
 If you find our work useful in your research or if you use parts of this code please consider citing our paper:
+
+Richard J. Chen, Ming Y. Lu, Wei-Hung Weng, Tiffany Y. Chen, Drew F.K. Williamson, Trevor Manz, Maha Shady, Faisal Mahmood; Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV), 2021, pp. 4015-4025
+
 ```
 @inproceedings{chen2021multimodal,
   title={Multimodal Co-Attention Transformer for Survival Prediction in Gigapixel Whole Slide Images},
