@@ -18,6 +18,7 @@ If you find our work useful in your research or if you use parts of this code pl
 <img src="Fig1_netarch.jpg" width="1500px" align="center" />
 
 ## Updates:
+* 11/12/2021: Several users have raised concerns about the low c-Index for GBMLGG in SNN (Genomic Only). In using the gene families from MSigDB as gene signatures, IDH1 mutation was not included (key biomarker in distinguishing GBM and LGG).
 * 06/18/2021: Updated [data preprocessing section](https://github.com/iccv2021anon/10972/blob/master/docs/README.md#3-molecular-features-and-genomic-signatures) for reproducibility.
 * 06/17/2021: Uploaded predicted risk scores on the validation folds for each models, and the evaluation script to compute the c-Index and Integrated AUC (I-AUC) validation metrics, found using the [following Jupyter Notebook](https://github.com/iccv2021anon/10972/blob/master/Evaluation.ipynb). Model checkpoints for MCAT are uploaded in the results directory.
 * 06/17/2021: Uploaded notebook detailing the MCAT network architecture, with sample input in the following [following Jupyter Notebook](https://github.com/iccv2021anon/10972/blob/master/Model%20Computation%20%2B%20Complexity%20Overview.ipynb), in which we print the shape of the tensors at each stage of MCAT.
