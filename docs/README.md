@@ -5,7 +5,7 @@ Multimodal Co-Attention Transformer (MCAT) for Survival Prediction in Gigapixel 
   <b>Multimodal Co-Attention Transformer for Survival Prediction in Gigapixel Whole Slide Images</b>, ICCV 2021.
   <a href="https://openaccess.thecvf.com/content/ICCV2021/papers/Chen_Multimodal_Co-Attention_Transformer_for_Survival_Prediction_in_Gigapixel_Whole_Slide_ICCV_2021_paper.pdf" target="blank">[HTML]</a>
   <a href="https://www.youtube.com/watch?v=KHv7ccs9FAI" target="blank">[Talk]</a>
-  <br><em>Richard J Chen, Ming Y Lu, Muhammad Shaban, Chengkuan Chen, Tiffany Y Chen, Drew FK Williamson, Faisal Mahmood</em></br>
+  <br><em>Richard J Chen, Ming Y Lu, Wei-Hung Weng, Tiffany Y Chen, Drew FK Williamson, Trevor Manz, Maha Shady, Faisal Mahmood</em></br>
 </summary>
 
 ```bash
