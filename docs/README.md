@@ -17,8 +17,9 @@ Multimodal Co-Attention Transformer (MCAT) for Survival Prediction in Gigapixel 
   year={2021}
 }
 ```
-**Summary:** We develop a method for performing early fusion between histology and genomics via: 1) formulating both WSIs and genomic inputs as embedding-like structures, 2) using co-attention mechanism that learns pairwise interactions between instance-level histology patches and genomic embeddings. In addition, we make connections between MIL and Set Transformers, and adapt Transformer Attention to WSIs for learning long-range dependencies for survival outcome prediction.
 </details>
+
+**Summary:** We develop a method for performing early fusion between histology and genomics via: 1) formulating both WSIs and genomic inputs as embedding-like structures, 2) using co-attention mechanism that learns pairwise interactions between instance-level histology patches and genomic embeddings. In addition, we make connections between MIL and Set Transformers, and adapt Transformer Attention to WSIs for learning long-range dependencies for survival outcome prediction.
 
 <img src="Fig1_netarch.jpg" width="1500px" align="center" />
 
