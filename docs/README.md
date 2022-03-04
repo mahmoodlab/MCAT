@@ -86,6 +86,10 @@ CUDA_VISIBLE_DEVICES=<DEVICE ID> python main.py --which_splits <SPLIT FOLDER PAT
 ```
 Commands for all experiments / models can be found in the [Commands.md](https://github.com) file.
 
+## Issues
+- Please open new threads or report issues directly (for urgent blockers) to richardchen@g.harvard.edu.
+- Immediate response to minor issues may not be available.
+
 ## License & Usage 
 If you find our work useful in your research, please consider citing our paper at:
 ```bash
